@@ -1,14 +1,27 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import styles from "./app.module.css";
 import { Input } from "./input";
 
+function isInteractiveElement(element: Element): boolean {
+  if (element.role === "button") {
+    return true;
+  }
+  return (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement ||
+    element instanceof HTMLButtonElement
+  );
+}
+
 export function App() {
   const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-
   const handler = useCallback(
     (e: KeyboardEvent) => {
-      console.log("ld");
+      if (isInteractiveElement(e.target as Element)) {
+        console.log("インタラクティブな要素の場合は無視する?");
+        return;
+      }
       if (e.key === "ArrowUp") {
         setCount(count + 1);
         return;
@@ -22,18 +35,24 @@ export function App() {
   );
 
   useEffect(() => {
-    if (ref.current === null) return;
-    ref.current.addEventListener("keydown", handler);
-    return () => ref.current?.removeEventListener("keydown", handler);
+    document.body.addEventListener("keydown", handler);
+    return () => document.body.removeEventListener("keydown", handler);
   }, [handler]);
 
   return (
     <div>
       <Input />
       {/* biome-ignore lint/a11y/noNoninteractiveTabindex: <explanation> */}
-      <div className={styles.wrapper} ref={ref} tabIndex={0}>
+      <div className={styles.wrapper} tabIndex={0}>
         <h2>上下キーでカウントアップ/カウントダウン</h2>
         <div>{count}</div>
+        <button type="button" onClick={() => setCount(count + 1)}>
+          +
+        </button>
+        {/* biome-ignore lint/a11y/useSemanticElements: <explanation> */}
+        <div className={styles.button} role="button" tabIndex={0}>
+          ボタンだよ
+        </div>
       </div>
     </div>
   );

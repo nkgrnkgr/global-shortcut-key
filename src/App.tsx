@@ -1,30 +1,37 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import styles from "./app.module.css";
 import { Input } from "./input";
 
 export function App() {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
+  const handler = useCallback(
+    (e: KeyboardEvent) => {
+      console.log("ld");
+      if (e.key === "ArrowUp") {
+        setCount(count + 1);
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        setCount(count - 1);
+        return;
+      }
+    },
+    [count],
+  );
+
   useEffect(() => {
-    if (ref.current) {
-      ref.current.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowUp") {
-          setCount((prev) => prev + 1);
-          return;
-        }
-        if (e.key === "ArrowDown") {
-          setCount((prev) => prev - 1);
-          return;
-        }
-      });
-    }
-  }, []);
+    if (ref.current === null) return;
+    ref.current.addEventListener("keydown", handler);
+    return () => ref.current?.removeEventListener("keydown", handler);
+  }, [handler]);
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveTabindex: <explanation>
-    <div ref={ref} tabIndex={0}>
+    <div>
       <Input />
-      <div>
+      {/* biome-ignore lint/a11y/noNoninteractiveTabindex: <explanation> */}
+      <div className={styles.wrapper} ref={ref} tabIndex={0}>
         <h2>上下キーでカウントアップ/カウントダウン</h2>
         <div>{count}</div>
       </div>
